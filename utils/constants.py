@@ -22,6 +22,8 @@ EMOTION_MAP = {
     "05" : "angry", "06": "fearful", "07": "disgust", "08": "surprised"
 }
 
+EMOTION_TO_IDX = {v: int(k) - 1 for k, v in EMOTION_MAP.items()}
+
 STATEMENT = {
     "01" : "Kids are talking by the door",
     "02" : "Dogs are sitting by the door"
