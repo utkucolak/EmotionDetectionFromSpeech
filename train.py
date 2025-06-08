@@ -40,6 +40,7 @@ def get_model(config, time_steps):
     return build_transformer(time_steps, config["d_model"])
 
 def train_model(config):
+    best_val_accuracy = 0.0
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
@@ -89,13 +90,48 @@ def train_model(config):
             batch_iterator.set_postfix(loss=loss.item())
         
         model_filename = get_weights_file_path(config, f'{epoch:02d}')
-        torch.save({
-            "epoch": epoch,
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "global_step": global_step
-        }, model_filename)
+        # Validation
 
+        model.eval()
+        val_loss = 0.0
+        correct = 0
+        total = 0
+        
+
+        with torch.no_grad():
+            for encoder_input, labels in val_loader:
+                encoder_input = encoder_input.to(device)
+                labels = labels.to(device)
+
+                outputs = model(encoder_input)
+                loss = loss_fn(outputs, labels)
+
+                val_loss += loss.item()
+
+                preds = torch.argmax(outputs, dim=1)
+                correct += (preds == labels).sum().item()
+                total += labels.size(0)
+
+        avg_val_loss = val_loss / len(val_loader)
+        val_accuracy = correct / total
+        print(f"Epoch {epoch} validation loss: {avg_val_loss:.4f}, accuracy: {val_accuracy:.4f}")
+        if epoch == 0 or val_accuracy > best_val_accuracy:
+            best_val_accuracy = val_accuracy
+            save_path = get_weights_file_path(config, f"best")
+            torch.save({
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "global_step": global_step
+            }, save_path)
+        if (epoch) % 5 == 0:
+            torch.save({
+                "epoch": epoch+1,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "global_step": global_step
+            }, model_filename)
+            print(f"Checkpoint saved at epoch {epoch} → {model_filename}")
 if __name__ == "__main__":
     warnings.filterwarnings('ignore')
     config = get_config()
