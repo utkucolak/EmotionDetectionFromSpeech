@@ -4,7 +4,7 @@ def get_config():
     return {
         "csv_path": "ravdess_metadata.csv",
         "batch_size": 8,
-        "num_epochs": 20,
+        "num_epochs": 1000,
         "lr": 1e-4,
         "max_len": 300,
         "d_model": 512,

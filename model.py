@@ -131,7 +131,7 @@ class EncoderBlock(nn.Module):
 
         return x
 
-#encoder may consists of N encoder blocks
+# encoder may consists of N encoder blocks
 
 class Encoder(nn.Module):
 
