@@ -38,3 +38,13 @@ GENDER = {
     "0" : "female",
     "1" : "male"
 }
+
+
+EMOTION_MAP_CREMAD = {
+    "ANG": 0,
+    "DIS": 1,
+    "FEA": 2,
+    "HAP": 3,
+    "NEU": 4,
+    "SAD": 5
+}

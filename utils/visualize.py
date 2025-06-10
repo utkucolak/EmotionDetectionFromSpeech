@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 def plot_training_curves(train_losses, val_losses, train_accuracies, val_accuracies, save_path="training_curves.png"):
     epochs = list(range(1, len(train_losses) + 1))
@@ -27,3 +28,11 @@ def plot_training_curves(train_losses, val_losses, train_accuracies, val_accurac
     plt.savefig(save_path)
     print(f"Saved training curves to {save_path}")
     plt.close()
+
+def plot_confusion_matrix(true, pred):
+    cm = confusion_matrix(true, pred, labels=sorted(true.unique()))
+
+    # Display the confusion matrix
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=sorted(true.unique()))
+    disp.plot(cmap='Blues')
+    plt.show()

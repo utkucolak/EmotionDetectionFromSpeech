@@ -158,12 +158,12 @@ class ClassifierLayer(nn.Module):
 
 class TransformerClassifier(nn.Module):
     
-    def __init__(self, encoder: Encoder, src_pos: PositionalEncoding, classifier_layer: ClassifierLayer, d_model: int) -> None:
+    def __init__(self, encoder: Encoder, src_pos: PositionalEncoding, classifier_layer: ClassifierLayer, d_model: int, n_mels: int) -> None:
         super().__init__()
         self.encoder = encoder
         self.src_pos = src_pos
         self.classifier_layer = classifier_layer
-        self.input_proj = nn.Linear(10, d_model)
+        self.input_proj = nn.Linear(n_mels, d_model)
 
     def forward(self, x, mask=None):
         x = self.input_proj(x)
@@ -177,9 +177,10 @@ def build_transformer(
     d_model: int = 128,         # size of feature embedding (keep manageable)
     N: int = 4,                 # number of encoder blocks
     h: int = 4,                 # number of attention heads
-    dropout: float = 0.1,
+    dropout: float = 0.3,
     d_ff: int = 512,            # feedforward inner dim
-    num_classes: int = 8        # number of output emotion classes
+    num_classes: int = 8,        # number of output emotion classes
+    n_mels: int = 64
 ) -> TransformerClassifier:
     # Create the positional encoding layers
     src_pos = PositionalEncoding(d_model, time_steps, dropout)
@@ -196,7 +197,7 @@ def build_transformer(
 
     classifier_layer = ClassifierLayer(d_model, num_classes)
 
-    transformer = TransformerClassifier(encoder, src_pos, classifier_layer, d_model)
+    transformer = TransformerClassifier(encoder, src_pos, classifier_layer, d_model, n_mels)
 
     # Initialize the parameters
     for p in transformer.parameters():

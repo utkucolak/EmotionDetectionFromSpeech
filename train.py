@@ -4,7 +4,7 @@ from config import get_config, get_weights_file_path
 import pandas as pd
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
-from utils.dataset import RAVDESSDataset
+from utils.dataset import RAVDESSDataset, CREMADDataset
 from pathlib import Path
 import torch
 import torch.nn as nn
@@ -16,27 +16,37 @@ from utils.visualize import *
 
 config = get_config()
 
-def get_dataloaders(csv_path: str, batch_size: int = 16, max_len: int = 300):
-    df = pd.read_csv(csv_path)
+def get_dataloaders(config):
+    df = pd.read_csv(config["csv_path"])
     train_df, val_df = train_test_split(df, test_size=0.2, stratify=df["emotion"], random_state=42)
-    
+
     train_df.to_csv("train_temp.csv", index=False)
     val_df.to_csv("val_temp.csv", index=False)
 
-    train_dataset = RAVDESSDataset("train_temp.csv", max_len=max_len)
-    val_dataset = RAVDESSDataset("val_temp.csv", max_len=max_len)
+    if config["dataset_type"] == "cremad":
+        train_dataset = CREMADDataset("train_temp.csv", max_len=config["max_len"], use_augmentation=True)
+        val_dataset = CREMADDataset("val_temp.csv", max_len=config["max_len"])
+    else:
+        train_dataset = RAVDESSDataset("train_temp.csv", max_len=config["max_len"])
+        val_dataset = RAVDESSDataset("val_temp.csv", max_len=config["max_len"])
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size)
+    train_loader = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=config["batch_size"])
 
     return train_loader, val_loader
 
-train_loader, val_loader = get_dataloaders(config["csv_path"],
-                                           batch_size=config["batch_size"],
-                                           max_len=config["max_len"])
+train_loader, val_loader = get_dataloaders(config)
 
-def get_model(config, time_steps):
-    return build_transformer(time_steps, config["d_model"])
+def get_model(config):
+    return build_transformer(
+    time_steps=config["max_len"],
+    d_model=config["d_model"],
+    h=config['h'],
+    d_ff=config['d_ff'],
+    N=config['N'],
+    num_classes=config["num_classes"],
+    n_mels=config["n_mels"]
+)
 
 def train_model(config):
     train_losses = []
@@ -49,13 +59,9 @@ def train_model(config):
 
     Path(config["model_folder"]).mkdir(parents=True, exist_ok=True)
 
-    train_loader, val_loader = get_dataloaders(
-        config["csv_path"], 
-        batch_size=config["batch_size"], 
-        max_len=config["max_len"]
-    )
+    train_loader, val_loader = get_dataloaders(config)
 
-    model = get_model(config, config["max_len"])
+    model = get_model(config)
     model = model.to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=config["lr"], eps=1e-9)
@@ -72,7 +78,7 @@ def train_model(config):
         optimizer.load_state_dict(state["optimizer_state_dict"])
         global_step = state["global_step"]
 
-    loss_fn = nn.CrossEntropyLoss(label_smoothing=0.1).to(device)
+    loss_fn = nn.CrossEntropyLoss(label_smoothing=0.2).to(device)
     
     for epoch in range(initial_epoch, config["num_epochs"]):
         model.train()
@@ -112,8 +118,9 @@ def train_model(config):
         val_loss = 0.0
         correct = 0
         total = 0
+        all_preds = []
+        all_labels = []
         
-
         with torch.no_grad():
             for encoder_input, labels in val_loader:
                 encoder_input = encoder_input.to(device)
@@ -127,6 +134,14 @@ def train_model(config):
                 preds = torch.argmax(outputs, dim=1)
                 correct += (preds == labels).sum().item()
                 total += labels.size(0)
+
+                all_preds.extend(preds.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
+        df = pd.DataFrame({
+            "true": all_labels,
+            "pred": all_preds
+        })
+        df.to_csv("val_predictions.csv", index=False)
 
         avg_val_loss = val_loss / len(val_loader)
         val_accuracy = correct / total
@@ -142,7 +157,7 @@ def train_model(config):
                 "optimizer_state_dict": optimizer.state_dict(),
                 "global_step": global_step
             }, save_path)
-        if (epoch) % 500 == 0:
+        if (epoch) % 10 == 0:
             torch.save({
                 "epoch": epoch+1,
                 "model_state_dict": model.state_dict(),
