@@ -57,7 +57,7 @@ pip install torch torchaudio librosa pandas scikit-learn
 
 ## 🎧 Preprocess Audio
 
-Download and extract the RAVDESS dataset:
+Download and extract the RAVDESS (CREMA-D not supported right now) dataset:
 ```bash
 python download_dataset.py
 ```
@@ -111,7 +111,7 @@ Evaluation is currently based on validation accuracy. Future work will include:
 
 - [x] Build custom Transformer encoder
 - [x] Implement positional encoding and attention manually
-- [x] Train model on RAVDESS dataset
+- [x] Train model on CREMA-D dataset
 - [ ] Evaluate with confusion matrix
 - [ ] Add live audio prediction support
 - [ ] Export model and demo notebook

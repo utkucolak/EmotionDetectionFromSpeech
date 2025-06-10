@@ -17,7 +17,7 @@ def get_config():
         "csv_path": csv_path,
         "num_classes": num_classes,
         "batch_size": 16,
-        "num_epochs": 50,
+        "num_epochs": 80,
         "lr": 1e-4,
         "max_len": 300,
         "d_model": 64,
