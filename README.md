@@ -26,9 +26,10 @@ The system classifies emotional states from speech using mel-spectrogram feature
 │   ├── data_dist_cremad.png
 │   ├── multi_head_attention.png
 │   └── transformer_from_scratch.png
+│   └── example_output.png
+│   └── model_summary.png
 │
-├── model/
-│   └── model.py                  # Transformer model components
+├── model/ #contains model weights
 │
 ├── utils/
 │   ├── constants.py
@@ -41,6 +42,7 @@ The system classifies emotional states from speech using mel-spectrogram feature
 │
 ├── train.py                      # Main training script
 ├── inference.py                  # Real-time microphone inference
+│── model.py                  # Transformer model components
 ├── download_dataset.py
 ├── config.py                     # Global config
 ├── val_predictions.csv           # CSV containing predicted validation results
