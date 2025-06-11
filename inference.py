@@ -25,7 +25,7 @@ def record_audio(duration=2, sr=22050):
     print("Done.")
     return audio.flatten()
 
-def is_silent(waveform, threshold=0.01, min_energy_duration=0.2, sr=22050):
+def is_silent(waveform, threshold=0.005, min_energy_duration=0.2, sr=22050):
     energy = np.abs(waveform)
     above_thresh = energy > threshold
     return np.sum(above_thresh) < sr * min_energy_duration

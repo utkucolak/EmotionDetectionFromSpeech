@@ -1,123 +1,110 @@
-# Emotion Classification from Speech Using Transformers
 
-This project implements an end-to-end Transformer-based neural network to classify emotions from raw audio speech data. It uses the RAVDESS dataset and extracts mel spectrograms as input features for a custom-built Transformer encoder architecture.
+# Emotion Detection from Speech – Transformer-Based Model
 
----
+This project implements a transformer-based model for emotion recognition from speech signals, built entirely from scratch without relying on pre-trained libraries like HuggingFace.
 
-## 📚 Description
+## 🔍 Overview
 
-The model is built entirely from scratch, mimicking the encoder structure from the Transformer paper: _"Attention Is All You Need" (Vaswani et al.)_. It includes positional encoding, multi-head attention, residual connections, layer normalization, and feedforward layers. It performs emotion classification without any decoder or NLP tokenizer components.
-
----
-
-## 🧠 Key Features
-
-- Custom Transformer Encoder (no HuggingFace or pretrained models)
-- Manual positional encoding implementation
-- Multi-head attention with residuals and layer norm
-- Audio input preprocessed to mel spectrograms
-- Emotion classification with final linear classifier
-- Dataset: RAVDESS (speech-only subset)
-
----
+The system classifies emotional states from speech using mel-spectrogram features and a transformer encoder architecture. It has been tested with two datasets:
+- [RAVDESS](https://zenodo.org/record/1188976)
+- [CREMA-D](https://www.kaggle.com/datasets/ejlok1/cremad)
 
 ## 📁 Project Structure
 
 ```
-EmotionDetectionFromSpeech/
-├── data/                    # Raw and preprocessed dataset (excluded from Git)
-├── utils/                   # Helper scripts (mel spectrogram, constants)
-├── train.py                 # Training loop
-├── transformer.py           # Full Transformer architecture
-├── ravdess_metadata.csv     # Parsed metadata (filepaths + emotion labels)
-├── download_dataset.py      # Script to fetch and extract dataset
-├── README.md                # This file
+├── data/
+│   ├── AudioWAV/                 # Raw CREMA-D audio files
+│   └── ravdess/                  # Raw RAVDESS audio files
+│
+├── datasetmetadata/
+│   └── ravdess_metadata.csv      # Metadata for RAVDESS
+│
+├── figures/
+│   ├── training_curves_cremad.png
+│   ├── training_curves_ravdess.png
+│   ├── confusion_matrix.png
+│   ├── data_dist_cremad.png
+│   ├── multi_head_attention.png
+│   └── transformer_from_scratch.png
+│
+├── model/
+│   └── model.py                  # Transformer model components
+│
+├── utils/
+│   ├── constants.py
+│   ├── create_mel_spectrogram.py
+│   ├── dataset.py                # Dataset loaders for RAVDESS & CREMA-D
+│   ├── data_dist_cremad.py      # Class distribution visualization
+│   ├── generate_data_files_for_input.py
+│   ├── generate_cremad_metadata.py
+│   └── visualize.py              # Training & evaluation visualizations
+│
+├── train.py                      # Main training script
+├── inference.py                  # Real-time microphone inference
+├── download_dataset.py
+├── config.py                     # Global config
+├── val_predictions.csv           # CSV containing predicted validation results
+├── LICENSE
+├── README.md
+└── requirements.txt
 ```
 
----
+## 🧠 Model Architecture
 
-## 🚀 Getting Started
+- Transformer encoder (built from scratch)
+- Multi-head self-attention
+- Positional encoding
+- Residual connections and layer normalization
+- Classification head (linear + softmax)
 
-### 1. Clone the Repository
+## 🧪 Training
+
+- Optimizer: Adam
+- Loss: CrossEntropy with label smoothing
+- Dropout for regularization
+- On-the-fly data augmentation for audio inputs (e.g., pitch/time shifting)
+
+Training and validation performance are visualized in `figures/`.
+
+## 📊 Evaluation
+
+Confusion matrix and accuracy/loss curves can be found in:
+- `figures/confusion_matrix.png`
+- `figures/training_curves_cremad.png`
+- `figures/data_dist_cremad.png`
+
+## 🎙️ Real-Time Inference
+
+Run the following to test with live microphone input:
+
 ```bash
-git clone https://github.com/utkucolak/EmotionDetectionFromSpeech.git
-cd EmotionDetectionFromSpeech
+python inference.py
 ```
 
-### 2. Install Requirements
+> Press `ESC` to stop recording loop.
+
+## 🧩 Supported Emotions
+
+For CREMA-D:  
+`[angry, disgust, fearful, happy, neutral, sad]`
+
+## ✅ Status
+
+- ✅ Custom transformer encoder
+- ✅ Dataset parsing & preprocessing
+- ✅ On-the-fly audio augmentation
+- ✅ Real-time microphone inference
+- ✅ CREMA-D support (speaker-independent split)
+- ✅ Visualization of metrics
+
+## 📌 Requirements
+
+Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
-Or manually:
-```bash
-pip install torch torchaudio librosa pandas scikit-learn
-```
 
----
+## ✍️ Author
 
-## 🎧 Preprocess Audio
-
-Download and extract the RAVDESS (CREMA-D not supported right now) dataset:
-```bash
-python download_dataset.py
-```
-
-Generate metadata:
-```bash
-# You must run your mel spectrogram and metadata builder script here
-```
-
----
-
-## 🏋️‍♀️ Train the Model
-
-Run the training loop:
-```bash
-python train.py
-```
-
-Make sure your model is built using:
-```python
-from transformer import build_transformer
-model = build_transformer(time_steps=300, d_model=128)
-```
-
----
-
-## 📈 Evaluation
-
-Evaluation is currently based on validation accuracy. Future work will include:
-- Confusion matrix
-- Precision/Recall/F1 metrics
-
----
-
-## 🔖 Emotion Classes
-
-| ID | Emotion   |
-|----|-----------|
-| 01 | Neutral   |
-| 02 | Calm      |
-| 03 | Happy     |
-| 04 | Sad       |
-| 05 | Angry     |
-| 06 | Fearful   |
-| 07 | Disgust   |
-| 08 | Surprised |
-
----
-
-## 🧩 TODO
-
-- [x] Build custom Transformer encoder
-- [x] Implement positional encoding and attention manually
-- [x] Train model on CREMA-D dataset
-- [ ] Evaluate with confusion matrix
-- [ ] Add live audio prediction support
-- [ ] Export model and demo notebook
-
----
-
-## 👤 Author
-
-Utku Çolak – [@utkucolak](https://github.com/utkucolak)
+Mehmet Utku Çolak
